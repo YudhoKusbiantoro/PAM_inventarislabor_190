@@ -29,10 +29,11 @@ import com.example.inventarislab.view.route.DestinasiBahanDetail
 import com.example.inventarislab.view.route.DestinasiBahanEdit
 import com.example.inventarislab.viewmodel.LoginViewModel
 import com.example.inventarislab.view.route.DestinasiBahanEntry
+import com.example.inventarislab.viewmodel.provider.PenyediaViewModel
 
 @Composable
 fun PetaNavigasi(navController: NavHostController) {
-    val loginViewModel: LoginViewModel = viewModel()
+    val loginViewModel: LoginViewModel = viewModel(factory = PenyediaViewModel.Factory)
 
     NavHost(
         navController = navController,

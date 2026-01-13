@@ -33,7 +33,9 @@ class JaringanRepositoryInventaris(
 ) : RepositoryInventaris {
 
     override suspend fun login(username: String, password: String): ResponseData<User> {
-        return apiService.login(mapOf("username" to username, "password" to password))
+        return safeApiCall {
+            apiService.login(mapOf("username" to username, "password" to password))
+        }
     }
 
     override suspend fun register(requestBody: Map<String, String>): ResponseData<User> {
@@ -100,7 +102,7 @@ class JaringanRepositoryInventaris(
         } catch (e: HttpException) {
             ResponseData(
                 status = "error",
-                message = "Server Error: ${e.code()}",
+                message = "Username atau password salah.",
                 data = null
             )
         } catch (e: Exception) {
