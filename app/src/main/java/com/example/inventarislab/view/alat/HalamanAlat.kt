@@ -97,7 +97,7 @@ fun HalamanAlat(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // NOTIFIKASI CARD
+            // NOTIFIKASI CARD - SUSUNAN 2 KOLOM (KIRI: 2 BARIS, KANAN: 1 BARIS)
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -106,7 +106,7 @@ fun HalamanAlat(
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
                         text = "Notifikasi",
@@ -114,19 +114,58 @@ fun HalamanAlat(
                         fontSize = 14.sp,
                         color = Color.Gray
                     )
+
                     val n = notification ?: AlatViewModel.Notification(0, 0, 0)
+
+                    // ROW UNTUK 2 KOLOM
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Total Alat : ${n.total}")
-                        Text("Perlu Kalibrasi : ${n.expired}")
-                    }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("Kondisi Rusak : ${n.rusak}")
+                        // KOLOM KIRI: 2 BARIS
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            // Baris 1: Total Alat
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.all),
+                                    contentDescription = "Total Alat",
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Total Alat : ${n.total}")
+                            }
+
+                            // Baris 2: Perlu Kalibrasi
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.hampirexpired),
+                                    contentDescription = "Perlu Kalibrasi",
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Perlu Kalibrasi : ${n.expired}")
+                            }
+                        }
+
+                        // KOLOM KANAN: 1 BARIS (centered vertically)
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.Start
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.rusak),
+                                    contentDescription = "Kondisi Rusak",
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Kondisi Rusak : ${n.rusak}")
+                            }
+                        }
                     }
                 }
             }

@@ -99,7 +99,7 @@ fun HalamanBahan(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // NOTIFIKASI CARD - PUTIH & TIMBUL
+            // NOTIFIKASI CARD - PUTIH & TIMBUL DENGAN LOGO & SUSUNAN 2x2
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -108,7 +108,7 @@ fun HalamanBahan(
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
                         text = "Notifikasi",
@@ -116,20 +116,77 @@ fun HalamanBahan(
                         fontSize = 14.sp,
                         color = Color.Gray
                     )
+
                     val n = notification ?: BahanViewModel.Notification(0, 0, 0, 0)
+
+                    // ROW UNTUK 2 KOLOM
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Total Bahan : ${n.total}")
-                        Text("Expired : ${n.expired}")
-                    }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("Hampir expired : ${n.hampirExpired}")
-                        Text("Kondisi Rusak : ${n.rusak}")
+                        // KOLOM KIRI
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            // Baris 1: Total Bahan
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.all),
+                                    contentDescription = "Total Bahan",
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Total Bahan : ${n.total}")
+                            }
+
+                            // Baris 2: Hampir Expired
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.hampirexpired),
+                                    contentDescription = "Hampir Expired",
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Hampir expired : ${n.hampirExpired}")
+                            }
+                        }
+
+                        // KOLOM KANAN
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            // Baris 3: Expired
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.expired),
+                                    contentDescription = "Expired",
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Expired : ${n.expired}")
+                            }
+
+                            // Baris 4: Kondisi Rusak
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.rusak),
+                                    contentDescription = "Kondisi Rusak",
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text("Kondisi Rusak : ${n.rusak}")
+                            }
+                        }
                     }
                 }
             }
