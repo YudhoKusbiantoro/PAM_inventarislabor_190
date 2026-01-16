@@ -12,6 +12,8 @@
     <string name="alat_list">Daftar Alat</string>
     <string name="detail_alat">Detail Alat</string>
     <string name="edit_alat">Edit Alat</string>
-
+    <string name="tambah_bahan">Tambah Bahan</string>
+    <string name="peralatan">Peralatan</string>
+    <string name="tambah_alat">Tambah Alat</string>
 
 </resources>
