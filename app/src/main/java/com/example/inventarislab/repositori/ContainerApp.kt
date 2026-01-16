@@ -40,12 +40,12 @@ class DefaultContainerApp : ContainerApp {
         retrofit.create(ApiService::class.java)
     }
 
-    override val repositoryInventaris: RepositoryInventaris by lazy {  // ✅ Diubah
-        JaringanRepositoryInventaris(apiService)  // ✅ Diubah
+    override val repositoryInventaris: RepositoryInventaris by lazy {
+        JaringanRepositoryInventaris(apiService)
     }
 }
 
-class AplikasiInventarisLab : Application() {  // ✅ Nama kelas diubah agar relevan
+class AplikasiInventarisLab : Application() {
     lateinit var container: ContainerApp
 
     override fun onCreate() {

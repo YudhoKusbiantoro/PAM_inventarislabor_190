@@ -12,6 +12,7 @@ interface RepositoryInventaris {
     suspend fun login(username: String, password: String): ResponseData<User>
     suspend fun register(requestBody: Map<String, String>): ResponseData<User>
     suspend fun getLabs(): ResponseData<List<Lab>>
+    suspend fun getUsersByLabId(labId: Int): ResponseData<List<User>>
 
     // BAHAN
     suspend fun getBahanByLabId(labId: Int): ResponseData<List<Bahan>>
@@ -40,11 +41,16 @@ class JaringanRepositoryInventaris(
     }
 
     override suspend fun register(requestBody: Map<String, String>): ResponseData<User> {
-        return apiService.register(requestBody)
+        return safeApiCall { apiService.register(requestBody) }
     }
 
     override suspend fun getLabs(): ResponseData<List<Lab>> {
         return apiService.getLabs()
+    }
+    override suspend fun getUsersByLabId(labId: Int): ResponseData<List<User>> {
+        return safeApiCall {
+            apiService.getUsersByLabId(mapOf("lab_id" to labId.toString()))
+        }
     }
 
     // === BAHAN ===

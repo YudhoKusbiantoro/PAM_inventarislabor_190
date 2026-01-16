@@ -7,20 +7,16 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import java.util.concurrent.TimeUnit // ✅ Tambahkan ini
+import java.util.concurrent.TimeUnit
 
 object ApiClient {
     private const val BASE_URL = "http://10.0.2.2/inventarislabor/"
 
-    private val loggingInterceptor = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BODY
-    }
 
     private val client = OkHttpClient.Builder()
-        .addInterceptor(loggingInterceptor)
-        .connectTimeout(30, TimeUnit.SECONDS) // ✅ Tambahkan ini
-        .readTimeout(30, TimeUnit.SECONDS)    // ✅ Tambahkan ini
-        .writeTimeout(30, TimeUnit.SECONDS)   // ✅ Tambahkan ini
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
         .build()
 
     private val json = Json {
