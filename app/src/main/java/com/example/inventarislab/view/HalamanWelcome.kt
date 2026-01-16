@@ -54,7 +54,7 @@ fun HalamanWelcome(navController: NavController) {
             ) {
                 // === LOGO ===
                 Image(
-                    painter = painterResource(id = R.drawable.kimia2), // Sesuaikan nama drawable Anda
+                    painter = painterResource(id = R.drawable.logo1), // Sesuaikan nama drawable Anda
                     contentDescription = "Logo Laboratorium",
                     modifier = Modifier.size(200.dp)
                 )

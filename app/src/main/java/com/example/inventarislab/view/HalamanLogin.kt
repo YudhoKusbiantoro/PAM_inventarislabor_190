@@ -61,7 +61,7 @@ fun HalamanLogin(
         ) {
             // ILLUSTRASI BESAR DI ATAS
             Image(
-                painter = painterResource(id = R.drawable.logo1), // Ganti dengan nama gambar Anda
+                painter = painterResource(id = R.drawable.kimia2), // Ganti dengan nama gambar Anda
                 contentDescription = "Login Illustration",
                 modifier = Modifier
                     .fillMaxWidth()
