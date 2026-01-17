@@ -1,3 +1,4 @@
+// view/HalamanEditAlat.kt
 package com.example.inventarislab.view
 
 import android.app.DatePickerDialog
@@ -16,7 +17,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.example.inventarislab.viewmodel.AlatViewModel
+// ✅ Ganti import ViewModel
+import com.example.inventarislab.viewmodel.alat.AlatDetailViewModel
+import com.example.inventarislab.viewmodel.alat.AlatUpdateViewModel
 import com.example.inventarislab.viewmodel.provider.PenyediaViewModel
 import java.util.Calendar
 
@@ -27,11 +30,13 @@ fun HalamanEditAlat(
     navController: NavHostController,
     onBackClick: () -> Unit
 ) {
-    val viewModel: AlatViewModel = viewModel(factory = PenyediaViewModel.Factory)
-    val alatState by viewModel.alatDetail.collectAsState()
+    // ✅ Gunakan ViewModel terpisah
+    val detailViewModel: AlatDetailViewModel = viewModel(factory = PenyediaViewModel.Factory)
+    val updateViewModel: AlatUpdateViewModel = viewModel(factory = PenyediaViewModel.Factory)
 
-    // ✅ TAMBAHKAN STATE UNTUK PANTAU HASIL
-    val updateResult by viewModel.updateResult.collectAsState()
+    val alatState by detailViewModel.alatDetail.collectAsState()
+    val updateResult by updateViewModel.updateResult.collectAsState()
+
     var isUpdating by remember { mutableStateOf(false) }
 
     var nama by remember { mutableStateOf("") }
@@ -51,7 +56,7 @@ fun HalamanEditAlat(
     val day = calendar.get(Calendar.DAY_OF_MONTH)
 
     LaunchedEffect(alatId) {
-        viewModel.loadAlatById(alatId)
+        detailViewModel.loadAlatById(alatId)
     }
 
     LaunchedEffect(alatState) {
@@ -78,7 +83,7 @@ fun HalamanEditAlat(
                     result.message ?: "Gagal memperbarui alat",
                     Toast.LENGTH_SHORT
                 ).show()
-                viewModel.resetUpdateResult()
+                updateViewModel.resetUpdateResult()
             }
         }
     }
@@ -213,7 +218,7 @@ fun HalamanEditAlat(
                         terakhirKalibrasi.isNotEmpty() && intervalKalibrasi.isNotEmpty()) {
                         alatState?.let { alat ->
                             isUpdating = true
-                            viewModel.updateAlat(
+                            updateViewModel.updateAlat(
                                 id = alatId,
                                 nama = nama,
                                 jumlah = jumlah,
@@ -223,7 +228,6 @@ fun HalamanEditAlat(
                                 kondisi = kondisi,
                                 labId = alat.lab_id
                             )
-                            // ❌ JANGAN PANGGIL popBackStack DI SINI!
                         }
                     } else {
                         Toast.makeText(context, "Semua field harus diisi.", Toast.LENGTH_SHORT).show()

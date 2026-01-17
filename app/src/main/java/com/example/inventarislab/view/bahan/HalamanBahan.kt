@@ -1,5 +1,5 @@
 // view/bahan/HalamanBahan.kt
-package com.example.inventarislab.view.bahan
+package com.example.inventarislab.view
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -25,9 +25,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.inventarislab.R
 import com.example.inventarislab.modeldata.Bahan
-import com.example.inventarislab.view.route.DestinasiTambahBahan
-import com.example.inventarislab.viewmodel.BahanViewModel
+import com.example.inventarislab.viewmodel.bahan.*
 import com.example.inventarislab.viewmodel.provider.PenyediaViewModel
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,20 +38,34 @@ fun HalamanBahan(
     navController: NavHostController,
     onBackClick: () -> Unit
 ) {
-    val viewModel: BahanViewModel = viewModel(factory = PenyediaViewModel.Factory)
-    val bahan by viewModel.bahan.collectAsState()
-    val notification by viewModel.notification.collectAsState()
+    val listViewModel: BahanListViewModel =
+        viewModel(factory = PenyediaViewModel.Factory)
+    val deleteViewModel: BahanDeleteViewModel =
+        viewModel(factory = PenyediaViewModel.Factory)
+    val createViewModel: BahanCreateViewModel =
+        viewModel(factory = PenyediaViewModel.Factory)
+    val updateViewModel: BahanUpdateViewModel =
+        viewModel(factory = PenyediaViewModel.Factory)
+
+    val bahan by listViewModel.bahan.collectAsState()
+    val notification by listViewModel.notification.collectAsState()
+    val deleteResult by deleteViewModel.deleteResult.collectAsState()
 
     var showEditDialog by remember { mutableStateOf<Bahan?>(null) }
     var showDeleteDialog by remember { mutableStateOf<Bahan?>(null) }
     var showAddDialog by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
-
-    // 🔍 Filter state
-    var selectedFilter by remember { mutableStateOf<String?>("Semua") }
+    var selectedFilter by remember { mutableStateOf("Semua") }
 
     LaunchedEffect(labId) {
-        viewModel.loadBahanByLabId(labId)
+        listViewModel.loadBahanByLabId(labId)
+    }
+
+    LaunchedEffect(deleteResult) {
+        if (deleteResult != null) {
+            listViewModel.loadBahanByLabId(labId)
+            deleteViewModel.resetDeleteResult()
+        }
     }
 
     Scaffold(
@@ -82,16 +98,14 @@ fun HalamanBahan(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = {
-                    navController.navigate("${DestinasiTambahBahan.route}/$labId")
-                },
+                onClick = { navController.navigate("tambah_bahan/$labId") },
                 containerColor = Color(0xFF2196F3),
                 content = {
                     Icon(Icons.Default.Add, contentDescription = "Tambah Bahan", tint = Color.White)
                 }
             )
         },
-        modifier = Modifier.background(Color(0xFFF5F7FA)) // Background abu-abu muda
+        modifier = Modifier.background(Color(0xFFF5F7FA))
     ) { padding ->
         Column(
             modifier = Modifier
@@ -118,7 +132,7 @@ fun HalamanBahan(
                         color = Color.Gray
                     )
 
-                    val n = notification ?: BahanViewModel.Notification(0, 0, 0, 0)
+                    val n = notification ?: BahanListViewModel.Notification(0, 0, 0, 0)
 
                     // ROW UNTUK 2 KOLOM
                     Row(
@@ -150,7 +164,7 @@ fun HalamanBahan(
                                 Image(
                                     painter = painterResource(id = R.drawable.hampirexpired),
                                     contentDescription = "Hampir Expired",
-                                    modifier = Modifier.size(20.dp)
+                                    modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text("Hampir expired : ${n.hampirExpired}")
@@ -182,9 +196,9 @@ fun HalamanBahan(
                                 Image(
                                     painter = painterResource(id = R.drawable.rusak),
                                     contentDescription = "Kondisi Rusak",
-                                    modifier = Modifier.size(20.dp)
+                                    modifier = Modifier.size(16.dp)
                                 )
-                                Spacer(modifier = Modifier.width(10.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
                                 Text("Kondisi Rusak : ${n.rusak}")
                             }
                         }
@@ -253,21 +267,55 @@ fun HalamanBahan(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(bahan.filter { item ->
-                    val matchesSearch = item.nama.contains(searchQuery, ignoreCase = true)
-                    val matchesFilter = when (selectedFilter) {
-                        "Semua" -> true
-                        "Hampir Expired" -> item.kondisi == "Hampir Expired"
-                        "Expired" -> item.kondisi == "Expired"
-                        "Rusak" -> item.kondisi == "Rusak"
-                        else -> true
+                items(
+                    bahan.filter { item ->
+                        val matchesSearch =
+                            item.nama.contains(searchQuery, ignoreCase = true)
+
+                        val matchesFilter = when (selectedFilter) {
+                            "Semua" -> true
+
+                            "Hampir Expired" ->
+                                isHampirExpired(item.expired)
+
+                            "Expired" -> {
+                                try {
+                                    val formatter = SimpleDateFormat(
+                                        "yyyy-MM-dd",
+                                        Locale.getDefault()
+                                    )
+                                    val expiredDate =
+                                        formatter.parse(item.expired) ?: return@filter false
+
+                                    val today = Calendar.getInstance()
+                                    val expiredCal = Calendar.getInstance().apply {
+                                        time = expiredDate
+                                    }
+
+                                    !expiredCal.after(today)
+                                } catch (e: Exception) {
+                                    false
+                                }
+                            }
+
+                            "Rusak" -> item.kondisi == "Rusak"
+
+                            else -> true
+                        }
+
+                        matchesSearch && matchesFilter
                     }
-                    matchesSearch && matchesFilter
-                }) { bahanItem ->
+                ) { bahanItem ->
                     BahanCard(
                         bahan = bahanItem,
                         onClick = {
                             navController.navigate("detail_bahan/${bahanItem.id}")
+                        },
+                        onDelete = {
+                            deleteViewModel.deleteBahan(
+                                bahanItem.id,
+                                bahanItem.lab_id
+                            )
                         }
                     )
                 }
@@ -275,12 +323,12 @@ fun HalamanBahan(
         }
     }
 
-    // EDIT DIALOG
+    // DIALOGS
     if (showEditDialog != null) {
         EditBahanDialog(
             bahan = showEditDialog!!,
             onConfirm = { nama, volume, expired, kondisi ->
-                viewModel.updateBahan(
+                updateViewModel.updateBahan(
                     id = showEditDialog!!.id,
                     nama = nama,
                     volume = volume,
@@ -294,23 +342,21 @@ fun HalamanBahan(
         )
     }
 
-    // DELETE DIALOG
     if (showDeleteDialog != null) {
         ConfirmDeleteBahanDialog(
             itemName = showDeleteDialog!!.nama,
             onConfirm = {
-                viewModel.deleteBahan(showDeleteDialog!!.id, labId)
+                deleteViewModel.deleteBahan(showDeleteDialog!!.id, labId)
                 showDeleteDialog = null
             },
             onDismiss = { showDeleteDialog = null }
         )
     }
 
-    // ADD DIALOG ✅
     if (showAddDialog) {
         AddBahanDialog(
             onConfirm = { nama, volume, expired, kondisi ->
-                viewModel.createBahan(
+                createViewModel.createBahan(
                     nama = nama,
                     volume = volume,
                     expired = expired,
@@ -328,6 +374,7 @@ fun HalamanBahan(
 fun BahanCard(
     bahan: Bahan,
     onClick: () -> Unit,
+    onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -337,7 +384,7 @@ fun BahanCard(
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White) // Card putih
+        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Row(
             modifier = Modifier
@@ -354,7 +401,7 @@ fun BahanCard(
             ) {
                 // Logo (dari drawable)
                 Image(
-                    painter = painterResource(id = R.drawable.logobahan), // Ganti dengan nama gambar Anda
+                    painter = painterResource(id = R.drawable.logobahan),
                     contentDescription = "Logo Bahan",
                     modifier = Modifier.size(40.dp).clip(RoundedCornerShape(8.dp))
                 )
@@ -551,4 +598,29 @@ fun AddBahanDialog(
             }
         }
     )
+}
+
+/* =========================
+   HELPER (SDK 24 SAFE)
+   ========================= */
+
+fun isHampirExpired(expiredDate: String): Boolean {
+    return try {
+        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val expired = formatter.parse(expiredDate) ?: return false
+
+        val today = Calendar.getInstance()
+        val expiredCal = Calendar.getInstance().apply {
+            time = expired
+        }
+
+        val diffMillis =
+            expiredCal.timeInMillis - today.timeInMillis
+        val diffDays =
+            (diffMillis / (1000 * 60 * 60 * 24)).toInt()
+
+        diffDays in 1..7
+    } catch (e: Exception) {
+        false
+    }
 }

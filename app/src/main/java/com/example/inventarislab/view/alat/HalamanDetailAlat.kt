@@ -24,7 +24,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.inventarislab.R
-import com.example.inventarislab.viewmodel.AlatViewModel
+// ✅ Ganti import ViewModel
+import com.example.inventarislab.viewmodel.alat.AlatDetailViewModel
+import com.example.inventarislab.viewmodel.alat.AlatDeleteViewModel
 import com.example.inventarislab.viewmodel.provider.PenyediaViewModel
 import kotlinx.coroutines.delay
 
@@ -35,20 +37,23 @@ fun HalamanDetailAlat(
     navController: NavHostController,
     onBackClick: () -> Unit
 ) {
-    val viewModel: AlatViewModel = viewModel(factory = PenyediaViewModel.Factory)
-    val alatState by viewModel.alatDetail.collectAsState()
-    val deleteResult by viewModel.deleteResult.collectAsState()
+    // ✅ Gunakan ViewModel terpisah
+    val detailViewModel: AlatDetailViewModel = viewModel(factory = PenyediaViewModel.Factory)
+    val deleteViewModel: AlatDeleteViewModel = viewModel(factory = PenyediaViewModel.Factory)
+
+    val alatState by detailViewModel.alatDetail.collectAsState()
+    val deleteResult by deleteViewModel.deleteResult.collectAsState()
 
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(alatId) {
-        viewModel.loadAlatById(alatId)
+        detailViewModel.loadAlatById(alatId)
     }
 
     LaunchedEffect(deleteResult) {
         if (deleteResult != null) {
             delay(300)
-            viewModel.resetDeleteResult()
+            deleteViewModel.resetDeleteResult()
             navController.popBackStack()
         }
     }
@@ -74,7 +79,6 @@ fun HalamanDetailAlat(
                 )
             )
         },
-        // ❌ HAPUS FAB — karena sekarang edit jadi tombol biasa
         modifier = Modifier.background(Color(0xFFF5F7FA)) // Background abu-abu muda
     ) { padding ->
 
@@ -258,7 +262,7 @@ fun HalamanDetailAlat(
             confirmButton = {
                 TextButton(onClick = {
                     showDeleteDialog = false
-                    viewModel.deleteAlat(
+                    deleteViewModel.deleteAlat(
                         alatState!!.id,
                         alatState!!.lab_id
                     )

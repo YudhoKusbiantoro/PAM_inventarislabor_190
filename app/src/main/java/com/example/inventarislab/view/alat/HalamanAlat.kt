@@ -1,4 +1,3 @@
-// view/HalamanAlat.kt
 package com.example.inventarislab.view
 
 import androidx.compose.foundation.Image
@@ -26,7 +25,8 @@ import androidx.navigation.NavHostController
 import com.example.inventarislab.R
 import com.example.inventarislab.modeldata.Alat
 import com.example.inventarislab.view.route.DestinasiTambahAlat
-import com.example.inventarislab.viewmodel.AlatViewModel
+import com.example.inventarislab.viewmodel.alat.AlatListViewModel
+import com.example.inventarislab.viewmodel.alat.AlatDeleteViewModel
 import com.example.inventarislab.viewmodel.provider.PenyediaViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -38,16 +38,28 @@ fun HalamanAlat(
     navController: NavHostController,
     onBackClick: () -> Unit
 ) {
-    val viewModel: AlatViewModel = viewModel(factory = PenyediaViewModel.Factory)
-    val alat by viewModel.alat.collectAsState()
-    val notification by viewModel.notification.collectAsState()
+    val listViewModel: AlatListViewModel = viewModel(factory = PenyediaViewModel.Factory)
+    val deleteViewModel: AlatDeleteViewModel = viewModel(factory = PenyediaViewModel.Factory)
+
+    val alat by listViewModel.alat.collectAsState()
+    val notification by listViewModel.notification.collectAsState()
+
+    // ✅ Gunakan collectAsState() untuk hasil operasi
+    val deleteResult by deleteViewModel.deleteResult.collectAsState()
 
     var searchQuery by remember { mutableStateOf("") }
-
     var selectedFilter by remember { mutableStateOf("Semua") }
 
     LaunchedEffect(labId) {
-        viewModel.loadAlatByLabId(labId)
+        listViewModel.loadAlatByLabId(labId)
+    }
+
+    // ✅ Handle hasil hapus dengan collectAsState()
+    LaunchedEffect(deleteResult) {
+        if (deleteResult != null) {
+            listViewModel.loadAlatByLabId(labId)
+            deleteViewModel.resetDeleteResult()
+        }
     }
 
     Scaffold(
@@ -98,7 +110,6 @@ fun HalamanAlat(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // NOTIFIKASI CARD - SUSUNAN 2 KOLOM (KIRI: 2 BARIS, KANAN: 1 BARIS)
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -116,19 +127,16 @@ fun HalamanAlat(
                         color = Color.Gray
                     )
 
-                    val n = notification ?: AlatViewModel.Notification(0, 0, 0)
+                    val n = notification ?: AlatListViewModel.Notification(0, 0, 0)
 
-                    // ROW UNTUK 2 KOLOM
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        // KOLOM KIRI: 2 BARIS
                         Column(
                             modifier = Modifier.weight(1f),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            // Baris 1: Total Alat
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Image(
                                     painter = painterResource(id = R.drawable.all),
@@ -138,8 +146,6 @@ fun HalamanAlat(
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text("Total Alat : ${n.total}")
                             }
-
-                            // Baris 2: Perlu Kalibrasi
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Image(
                                     painter = painterResource(id = R.drawable.hampirexpired),
@@ -150,8 +156,6 @@ fun HalamanAlat(
                                 Text("Perlu Kalibrasi : ${n.expired}")
                             }
                         }
-
-                        // KOLOM KANAN: 1 BARIS (centered vertically)
                         Column(
                             modifier = Modifier.weight(1f),
                             verticalArrangement = Arrangement.Center,
@@ -171,15 +175,13 @@ fun HalamanAlat(
                 }
             }
 
-            // SEARCH BAR
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 label = { Text("Cari Alat") },
                 modifier = Modifier.fillMaxWidth()
             )
-            // FILTER BUTTONS - HANYA UI, BELUM ADA LOGIKA
-            // FILTER BUTTONS — DISAMAKAN DENGAN HALAMAN BAHAN
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -195,7 +197,6 @@ fun HalamanAlat(
                         labelColor = if (selectedFilter == "Semua") Color(0xFF2E7D32) else Color.Gray
                     )
                 )
-
                 FilterChip(
                     selected = selectedFilter == "Perlu Kalibrasi",
                     onClick = { selectedFilter = "Perlu Kalibrasi" },
@@ -205,7 +206,6 @@ fun HalamanAlat(
                         labelColor = if (selectedFilter == "Perlu Kalibrasi") Color.Red else Color.Gray
                     )
                 )
-
                 FilterChip(
                     selected = selectedFilter == "Rusak",
                     onClick = { selectedFilter = "Rusak" },
@@ -217,14 +217,12 @@ fun HalamanAlat(
                 )
             }
 
-            // LIST ALAT - TANPA FILTER DULU
             LazyColumn(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(alat.filter { item ->
                     val matchesSearch = item.nama.contains(searchQuery, ignoreCase = true)
-
                     val matchesFilter = when (selectedFilter) {
                         "Semua" -> true
                         "Perlu Kalibrasi" -> {
@@ -232,18 +230,11 @@ fun HalamanAlat(
                                 val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                                 val lastCalibration = formatter.parse(item.terakhir_kalibrasi)
                                 val today = Date()
-
-                                val intervalMonths = try {
-                                    item.interval_kalibrasi.toInt()
-                                } catch (e: NumberFormatException) {
-                                    0
-                                }
-
+                                val intervalMonths = item.interval_kalibrasi
                                 val calendar = Calendar.getInstance()
                                 calendar.time = lastCalibration
                                 calendar.add(Calendar.MONTH, intervalMonths)
                                 val nextCalibration = calendar.time
-
                                 today.after(nextCalibration)
                             } catch (e: Exception) {
                                 false
@@ -252,7 +243,6 @@ fun HalamanAlat(
                         "Rusak" -> item.kondisi == "Rusak"
                         else -> true
                     }
-
                     matchesSearch && matchesFilter
                 }) { alatItem ->
                     AlatCard(

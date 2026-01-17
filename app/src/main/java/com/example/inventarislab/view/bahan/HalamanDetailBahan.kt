@@ -24,7 +24,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.inventarislab.R
-import com.example.inventarislab.viewmodel.BahanViewModel
+// ✅ Ganti import ViewModel
+import com.example.inventarislab.viewmodel.bahan.BahanDetailViewModel
+import com.example.inventarislab.viewmodel.bahan.BahanDeleteViewModel
 import com.example.inventarislab.viewmodel.provider.PenyediaViewModel
 import kotlinx.coroutines.delay
 
@@ -35,21 +37,24 @@ fun HalamanDetailBahan(
     navController: NavHostController,
     onBackClick: () -> Unit
 ) {
-    val viewModel: BahanViewModel = viewModel(factory = PenyediaViewModel.Factory)
-    val bahanState by viewModel.bahanDetail.collectAsState()
-    val deleteResult by viewModel.deleteResult.collectAsState()
+    // ✅ Gunakan ViewModel terpisah
+    val detailViewModel: BahanDetailViewModel = viewModel(factory = PenyediaViewModel.Factory)
+    val deleteViewModel: BahanDeleteViewModel = viewModel(factory = PenyediaViewModel.Factory)
+
+    val bahanState by detailViewModel.bahanDetail.collectAsState()
+    val deleteResult by deleteViewModel.deleteResult.collectAsState()
 
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(bahanId) {
-        viewModel.loadBahanById(bahanId)
+        detailViewModel.loadBahanById(bahanId)
     }
 
     // ✅ setelah delete berhasil → kembali ke list
     LaunchedEffect(deleteResult) {
         if (deleteResult != null) {
             delay(300)
-            viewModel.resetDeleteResult()
+            deleteViewModel.resetDeleteResult()
             navController.popBackStack()
         }
     }
@@ -218,7 +223,7 @@ fun HalamanDetailBahan(
             confirmButton = {
                 TextButton(onClick = {
                     showDeleteDialog = false
-                    viewModel.deleteBahan(
+                    deleteViewModel.deleteBahan(
                         bahanState!!.id,
                         bahanState!!.lab_id
                     )
