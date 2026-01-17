@@ -1,3 +1,4 @@
+// view/HalamanEditBahan.kt
 package com.example.inventarislab.view
 
 import android.app.DatePickerDialog
@@ -14,7 +15,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.example.inventarislab.viewmodel.BahanViewModel
+// ✅ Ganti import ViewModel
+import com.example.inventarislab.viewmodel.bahan.BahanDetailViewModel
+import com.example.inventarislab.viewmodel.bahan.BahanUpdateViewModel
 import com.example.inventarislab.viewmodel.provider.PenyediaViewModel
 import java.util.Calendar
 
@@ -25,11 +28,13 @@ fun HalamanEditBahan(
     navController: NavHostController,
     onBackClick: () -> Unit
 ) {
-    val viewModel: BahanViewModel = viewModel(factory = PenyediaViewModel.Factory)
-    val bahanState by viewModel.bahanDetail.collectAsState()
+    // ✅ Gunakan ViewModel terpisah
+    val detailViewModel: BahanDetailViewModel = viewModel(factory = PenyediaViewModel.Factory)
+    val updateViewModel: BahanUpdateViewModel = viewModel(factory = PenyediaViewModel.Factory)
 
-    // ✅ AMBIL NILAI LANGSUNG (BUKAN DELEGATED PROPERTY)
-    val updateResult by viewModel.updateResult.collectAsState()
+    val bahanState by detailViewModel.bahanDetail.collectAsState()
+    val updateResult by updateViewModel.updateResult.collectAsState()
+
     var isUpdating by remember { mutableStateOf(false) }
 
     var nama by remember { mutableStateOf("") }
@@ -46,7 +51,7 @@ fun HalamanEditBahan(
 
     // Load data awal
     LaunchedEffect(bahanId) {
-        viewModel.loadBahanById(bahanId)
+        detailViewModel.loadBahanById(bahanId)
     }
 
     // Isi form dengan data awal
@@ -72,7 +77,7 @@ fun HalamanEditBahan(
                     result.message ?: "Gagal memperbarui bahan",
                     Toast.LENGTH_SHORT
                 ).show()
-                viewModel.resetUpdateResult()
+                updateViewModel.resetUpdateResult()
             }
         }
     }
@@ -177,7 +182,7 @@ fun HalamanEditBahan(
                     }
                     val labId = bahanState?.lab_id ?: 1
                     isUpdating = true
-                    viewModel.updateBahan(bahanId, nama, volume, expired, kondisi, labId)
+                    updateViewModel.updateBahan(bahanId, nama, volume, expired, kondisi, labId)
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !isUpdating && nama.isNotBlank() && volume.isNotBlank() && expired.isNotBlank() && kondisi.isNotBlank()

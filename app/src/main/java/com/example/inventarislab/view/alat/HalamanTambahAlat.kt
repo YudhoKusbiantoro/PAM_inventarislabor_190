@@ -1,3 +1,4 @@
+// view/HalamanTambahAlat.kt
 package com.example.inventarislab.view
 
 import android.app.DatePickerDialog
@@ -16,7 +17,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.example.inventarislab.viewmodel.AlatViewModel
+// ✅ Ganti import ViewModel
+import com.example.inventarislab.viewmodel.alat.AlatCreateViewModel
 import com.example.inventarislab.viewmodel.provider.PenyediaViewModel
 import java.util.Calendar
 
@@ -27,9 +29,9 @@ fun HalamanTambahAlat(
     navController: NavHostController,
     onBackClick: () -> Unit
 ) {
-    val viewModel: AlatViewModel = viewModel(factory = PenyediaViewModel.Factory)
+    // ✅ Gunakan ViewModel terpisah
+    val viewModel: AlatCreateViewModel = viewModel(factory = PenyediaViewModel.Factory)
 
-    // ✅ TAMBAHKAN STATE UNTUK PANTAU HASIL
     val createResult by viewModel.createResult.collectAsState()
     var isCreating by remember { mutableStateOf(false) }
 
@@ -49,10 +51,8 @@ fun HalamanTambahAlat(
     val month = calendar.get(Calendar.MONTH)
     val day = calendar.get(Calendar.DAY_OF_MONTH)
 
-    // ✅ TANGANI HASIL OPERASI
-    // ✅ TANGANI HASIL OPERASI
     LaunchedEffect(createResult) {
-        val result = createResult  // ✅ Ambil nilai lokal
+        val result = createResult
         if (result != null) {
             isCreating = false
             if (result.status == "success") {
@@ -207,7 +207,6 @@ fun HalamanTambahAlat(
                             kondisi = kondisi,
                             labId = labId
                         )
-                        // ❌ JANGAN PANGGIL popBackStack DI SINI!
                     } else {
                         Toast.makeText(context, "Semua field harus diisi.", Toast.LENGTH_SHORT).show()
                     }

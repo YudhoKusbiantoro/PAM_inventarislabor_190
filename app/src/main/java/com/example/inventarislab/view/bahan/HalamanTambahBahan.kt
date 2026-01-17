@@ -1,4 +1,4 @@
-// view/HalamanTambahBahan.kt
+// view/bahan/HalamanTambahBahan.kt
 package com.example.inventarislab.view.bahan
 
 import android.app.DatePickerDialog
@@ -14,7 +14,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.example.inventarislab.viewmodel.BahanViewModel
+// ✅ Ganti import ViewModel
+import com.example.inventarislab.viewmodel.bahan.BahanCreateViewModel
 import com.example.inventarislab.viewmodel.provider.PenyediaViewModel
 import java.util.Calendar
 
@@ -25,7 +26,8 @@ fun HalamanTambahBahan(
     navController: NavHostController,
     onBackClick: () -> Unit
 ) {
-    val viewModel: BahanViewModel = viewModel(factory = PenyediaViewModel.Factory)
+    // ✅ Gunakan ViewModel terpisah
+    val viewModel: BahanCreateViewModel = viewModel(factory = PenyediaViewModel.Factory)
     var nama by remember { mutableStateOf("") }
     var volume by remember { mutableStateOf("") }
     var expired by remember { mutableStateOf("") }
@@ -38,13 +40,14 @@ fun HalamanTambahBahan(
     val month = calendar.get(Calendar.MONTH)
     val day = calendar.get(Calendar.DAY_OF_MONTH)
 
-    // ✅ INI SAJA
+    // ✅ Handle hasil operasi
     val createResult by viewModel.createResult.collectAsState()
 
     LaunchedEffect(createResult) {
-        createResult?.let { result ->
+        val result = createResult
+        if (result != null) {
             if (result.status == "success") {
-                navController.popBackStack()
+                onBackClick()
             } else {
                 Toast.makeText(
                     context,
@@ -55,7 +58,6 @@ fun HalamanTambahBahan(
             viewModel.resetCreateResult()
         }
     }
-
 
     Scaffold(
         topBar = {
@@ -112,7 +114,6 @@ fun HalamanTambahBahan(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // ✅ DROPDOWN KONDISI (Material 3 Resmi)
             ExposedDropdownMenuBox(
                 expanded = kondisiExpanded,
                 onExpandedChange = { kondisiExpanded = it }
@@ -153,7 +154,6 @@ fun HalamanTambahBahan(
             ) {
                 Text("Simpan")
             }
-
         }
     }
 }
